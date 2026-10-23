@@ -254,7 +254,12 @@ def test_base_layout_header_footer_and_htmx(client):
     for text in ("м. Вінниця, вул. Костянтина Василенка 9", "Пн–Сб 9:00–20:00, Нд 9:00–17:00", "+380 98 593 68 15"):
         assert text in html
     assert 'href="https://www.instagram.com/remesh.fishing_team/"' in html
-    assert '<script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js"></script>' in html
+    # Pinned file with Subresource Integrity (sha384 of htmx.org@2.0.4/dist/htmx.min.js, as listed in the htmx docs).
+    assert (
+        '<script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js" '
+        'integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" '
+        'crossorigin="anonymous"></script>'
+    ) in html
 
 
 def test_body_carries_the_csrf_token_for_htmx(client):
