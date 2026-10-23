@@ -19,7 +19,7 @@ def env_list(name, default=""):
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-dev-only-key-change-in-production")
 DEBUG = os.environ.get("DEBUG", "0") == "1"
-HTTPS = os.environ.get("HTTPS", "0") == "1"  # secure-cookie/redirect behaviour is wired up in the deploy task
+HTTPS = os.environ.get("HTTPS", "0") == "1"  # behind a TLS-terminating proxy (Render): see the block at the end
 
 ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "127.0.0.1,localhost")
 CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS")
@@ -131,3 +131,11 @@ LOGGING = {
         "notify": {"handlers": ["console"], "level": "WARNING"},
     },
 }
+
+if HTTPS:
+    # Render terminates TLS and forwards plain HTTP with X-Forwarded-Proto.
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = True
+    SECURE_REDIRECT_EXEMPT = [r"^healthz/$"]  # the platform health check talks plain HTTP
+    SESSION_COOKIE_SECURE = CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 3600  # short on purpose: raise it once the domain is known to work over HTTPS
