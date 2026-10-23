@@ -47,12 +47,16 @@ class Cart:
         return new_quantity
 
     def set(self, variant_id: int, quantity: int) -> int:
-        """Set the exact quantity, capped at stock. Zero/negative or a missing variant removes the line (returns 0)."""
+        """Set the exact quantity, capped at stock.
+
+        Zero/negative, a missing variant or an unavailable one (``not in_stock``: inactive variant or product,
+        or no stock) removes the line and returns 0, so ``set`` can never store what ``add`` would refuse.
+        """
         if quantity <= 0:
             self.remove(variant_id)
             return 0
-        variant = Variant.objects.filter(pk=variant_id).first()
-        new_quantity = min(quantity, variant.stock) if variant else 0
+        variant = Variant.objects.select_related("product").filter(pk=variant_id).first()
+        new_quantity = min(quantity, variant.stock) if variant is not None and variant.in_stock else 0
         if new_quantity <= 0:
             self.remove(variant_id)
             return 0

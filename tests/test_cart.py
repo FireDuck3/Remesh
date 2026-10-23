@@ -85,6 +85,46 @@ def test_set_out_of_stock_variant_removes(session, make_variant):
     assert cart.is_empty()
 
 
+def test_set_on_variant_not_in_cart_stores_it_capped_at_stock(session, make_variant):
+    v = make_variant(stock=3)
+    cart = Cart(session)
+    assert cart.set(v.pk, 7) == 3
+    assert cart.count() == 3
+    assert session[Cart.SESSION_KEY] == {str(v.pk): 3}
+
+
+def test_set_inactive_variant_not_in_cart_stores_nothing(session, make_variant):
+    v = make_variant(is_active=False, stock=5)
+    cart = Cart(session)
+    assert cart.set(v.pk, 3) == 0
+    assert cart.is_empty()
+    assert session.get(Cart.SESSION_KEY, {}) == {}
+
+
+def test_set_variant_of_inactive_product_not_in_cart_stores_nothing(session, make_variant, make_product):
+    v = make_variant(product=make_product(is_active=False), stock=5)
+    cart = Cart(session)
+    assert cart.set(v.pk, 3) == 0
+    assert cart.is_empty()
+    assert session.get(Cart.SESSION_KEY, {}) == {}
+
+
+def test_set_removes_line_when_variant_becomes_inactive(session, make_variant):
+    v = make_variant(stock=5); cart = Cart(session); cart.add(v, 2)
+    v.is_active = False; v.save()
+    assert cart.set(v.pk, 2) == 0
+    assert cart.is_empty()
+    assert session[Cart.SESSION_KEY] == {}
+
+
+def test_set_removes_line_when_product_becomes_inactive(session, make_variant):
+    v = make_variant(stock=5); cart = Cart(session); cart.add(v, 2)
+    v.product.is_active = False; v.product.save()
+    assert cart.set(v.pk, 2) == 0
+    assert cart.is_empty()
+    assert session[Cart.SESSION_KEY] == {}
+
+
 def test_remove_drops_only_that_variant(session, make_variant):
     a, b = make_variant(), make_variant()
     cart = Cart(session); cart.add(a); cart.add(b, 2)
