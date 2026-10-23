@@ -1,0 +1,33 @@
+{
+  "success": true,
+  "data": [
+    {
+      "TotalCount": "2",
+      "Addresses": [
+        {
+          "Present": "м. Вінниця, Вінницька обл.",
+          "Warehouses": 28,
+          "MainDescription": "Вінниця",
+          "Area": "Вінницька",
+          "Region": "",
+          "SettlementTypeCode": "м.",
+          "Ref": "settlement-ref-1",
+          "DeliveryCity": "city-ref-1"
+        },
+        {
+          "Present": "с. Вінницькі Хутори, Вінницька обл.",
+          "Warehouses": 1,
+          "MainDescription": "Вінницькі Хутори",
+          "Area": "Вінницька",
+          "Region": "Вінницький",
+          "SettlementTypeCode": "с.",
+          "Ref": "settlement-ref-2",
+          "DeliveryCity": "city-ref-2"
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "warnings": [],
+  "info": {"totalCount": 1}
+}

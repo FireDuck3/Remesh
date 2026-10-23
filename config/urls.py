@@ -13,6 +13,7 @@ urlpatterns = [
     path("healthz/", healthz),
     path("admin/", admin.site.urls),
     path("cart/", include("cart.urls")),
+    path("delivery/", include("delivery.urls")),
     path("", include("catalog.urls")),  # last: orders.urls goes before it
 ]
 

@@ -1,0 +1,22 @@
+{
+  "success": true,
+  "data": [
+    {
+      "Ref": "wh-ref-1",
+      "Description": "Відділення №1: вул. Пирогова, 4",
+      "Number": "1",
+      "CityRef": "city-ref-1",
+      "CityDescription": "Вінниця"
+    },
+    {
+      "Ref": "wh-ref-2",
+      "Description": "Відділення №2: вул. Келецька, 78",
+      "Number": "2",
+      "CityRef": "city-ref-1",
+      "CityDescription": "Вінниця"
+    }
+  ],
+  "errors": [],
+  "warnings": [],
+  "info": {"totalCount": 2}
+}

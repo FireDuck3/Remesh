@@ -1,0 +1,2 @@
+{% if error %}<p class="np-hint">Не вдалося завантажити — введіть вручну</p>{% else %}{% for warehouse in warehouses %}<button type="button" class="np-option" data-ref="{{ warehouse.ref }}" data-name="{{ warehouse.name }}">{{ warehouse.name }}</button>
+{% endfor %}{% endif %}
