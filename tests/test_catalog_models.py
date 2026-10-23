@@ -1,9 +1,10 @@
 from decimal import Decimal
 
 import pytest
+from django.core.exceptions import ValidationError
 from django.db.models import ProtectedError
 
-from catalog.models import Category, Product, ProductImage
+from catalog.models import Category, Product, ProductImage, Variant
 
 
 def test_min_price_ignores_inactive_variants(make_variant):
@@ -95,3 +96,15 @@ def test_product_admin_list_handles_missing_price_and_shows_thumbnail(admin_clie
     assert "780 грн" in html
     assert "/media/products/a.jpg" in html
     assert "Без варіантів" in html
+
+
+@pytest.mark.parametrize("price", [Decimal("0"), Decimal("0.00"), Decimal("-5.00")])
+def test_variant_price_must_be_positive(make_product, price):
+    variant = Variant(product=make_product(), name="Тест", sku="PRICE-1", price=price, stock=1)
+    with pytest.raises(ValidationError) as error:
+        variant.full_clean()
+    assert "price" in error.value.message_dict
+
+
+def test_variant_price_of_one_kopeck_is_valid(make_product):
+    Variant(product=make_product(), name="Тест", sku="PRICE-2", price=Decimal("0.01"), stock=1).full_clean()

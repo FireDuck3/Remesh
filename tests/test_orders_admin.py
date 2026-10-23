@@ -165,3 +165,14 @@ def test_manager_edits_orders_but_cannot_add_or_delete(client, django_user_model
     assert client.get(f"{LIST_URL}add/").status_code == 403
     assert client.post(f"{LIST_URL}{order.pk}/delete/", {"post": "yes"}).status_code == 403
     assert Order.objects.filter(pk=order.pk).exists()
+
+
+def test_orders_cannot_be_deleted_even_by_a_superuser(admin_client, session, make_variant):
+    """Cancelling is the supported path (it restocks); deleting would skip that."""
+    order, variant = placed(session, make_variant, stock=10, qty=3)
+    delete_url = f"{LIST_URL}{order.pk}/delete/"
+    assert admin_client.get(delete_url).status_code == 403
+    assert admin_client.post(delete_url, {"post": "yes"}).status_code == 403
+    admin_client.post(LIST_URL, {"action": "delete_selected", "_selected_action": [order.pk], "post": "yes"})
+    assert Order.objects.filter(pk=order.pk).exists()
+    assert "delete_selected" not in dict(admin_client.get(LIST_URL).context["action_form"].fields["action"].choices)

@@ -206,3 +206,32 @@ def test_autocomplete_with_np_key(client, variant, settings):
 
 def test_checkout_script_is_a_static_file():
     assert finders.find("js/checkout.js")
+
+
+def test_editing_the_city_clears_the_warehouse_name_ref_and_list():
+    """No JS runner here: guard the handler's text (checked by hand in a browser against the old/new script)."""
+    source = open(finders.find("js/checkout.js"), encoding="utf-8").read()
+    handler = source.split('cityName.addEventListener("input"', 1)[1].split("});", 1)[0]
+    for line in ['cityRef.value = ""', 'warehouseName.value = ""', 'warehouseRef.value = ""',
+                 'warehouseResults.innerHTML = ""']:
+        assert line in handler
+
+
+# --- a variant deleted after it was put in the cart -------------------------------------------------------
+
+
+def test_variant_deleted_after_being_added_is_dropped_from_checkout(client, make_variant):
+    gone, live = make_variant(name="Видалений"), make_variant(name="Живий", stock=5)
+    add(client, gone)
+    add(client, live, 2)
+    gone.delete()
+
+    page = client.get("/checkout/")
+    assert page.status_code == 200 and "Живий" in page.content.decode() and "Видалений" not in page.content.decode()
+
+    r = client.post("/checkout/", FORM)
+    order = Order.objects.get()
+    assert r["Location"] == f"/order/{order.number}/thanks/"
+    assert [(i.variant_name, i.quantity) for i in order.items.all()] == [("Живий", 2)]
+    live.refresh_from_db()
+    assert live.stock == 3

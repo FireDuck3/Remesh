@@ -1,3 +1,6 @@
+from decimal import Decimal
+
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Min
 
@@ -74,7 +77,9 @@ class Variant(models.Model):
     )
     name = models.CharField("Назва варіанта", max_length=100)
     sku = models.CharField("Артикул", max_length=50, unique=True)
-    price = models.DecimalField("Ціна, грн", max_digits=10, decimal_places=2)
+    price = models.DecimalField(
+        "Ціна, грн", max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))]
+    )
     stock = models.PositiveIntegerField("Залишок", default=0)
     is_active = models.BooleanField("Активний", default=True)
 

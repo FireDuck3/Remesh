@@ -65,9 +65,11 @@
   });
 
   // Typing after picking: the text no longer matches the ref, so the ref must go. A different city also
-  // invalidates the warehouse that was picked in the old one (and the list of that city's warehouses).
+  // invalidates the warehouse that was picked in the old one: its ref, its visible name (otherwise the
+  // buyer would still see, and submit, a warehouse of the wrong city) and the list of that city's warehouses.
   cityName.addEventListener("input", function () {
     cityRef.value = "";
+    warehouseName.value = "";
     warehouseRef.value = "";
     warehouseResults.innerHTML = "";
   });

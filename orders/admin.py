@@ -75,6 +75,9 @@ class OrderAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         return False  # orders only come from the storefront checkout
 
+    def has_delete_permission(self, request, obj=None):
+        return False  # cancelling (which restocks) is the way to withdraw an order; deleting would skip that
+
     def get_readonly_fields(self, request, obj=None):
         if obj is not None and obj.status == Order.Status.CANCELLED:
             return (*self.readonly_fields, "status")  # a cancelled order is never reopened

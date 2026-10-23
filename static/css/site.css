@@ -446,6 +446,12 @@ p {
   margin: 0 0 1rem;
 }
 
+/* 404 page */
+
+.not-found p {
+  margin: 0 0 1rem;
+}
+
 /* Flash messages (django.contrib.messages) */
 
 .messages {
