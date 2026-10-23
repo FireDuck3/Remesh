@@ -1,0 +1,8 @@
+Django>=5.2.8,<6.0
+dj-database-url
+whitenoise
+gunicorn
+psycopg[binary]
+requests
+python-dotenv
+Pillow
