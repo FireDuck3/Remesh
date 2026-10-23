@@ -14,7 +14,18 @@ SEED_IMAGES_DIR = Path(__file__).resolve().parents[2] / "seed_images"
 class Command(BaseCommand):
     help = "Створює початкові категорії, товари й варіанти REMESH. Існуючі записи не змінює."
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--if-empty",
+            action="store_true",
+            help="Нічого не створювати, якщо в каталозі вже є хоч один товар (для запуску при кожному деплої).",
+        )
+
     def handle(self, *args, **options):
+        if options["if_empty"] and Product.objects.exists():
+            self.stdout.write("Каталог не порожній — пропущено")
+            return
+
         # Read at call time so tests can monkeypatch seed_data.
         categories, products = seed_data.CATEGORIES, seed_data.PRODUCTS
         created = {"categories": 0, "products": 0, "variants": 0}

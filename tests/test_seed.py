@@ -139,3 +139,32 @@ def test_real_seed_runs_and_only_priced_variants_are_created():
     assert Variant.objects.count() == len(priced)
     for v in unpriced:
         assert f"Ціну не задано: {v['sku']} — пропущено" in out.getvalue()
+
+
+def test_if_empty_seeds_normally_on_empty_catalog(monkeypatch):
+    for k, v in SMALL.items():
+        monkeypatch.setattr(seed_data, k, v)
+    out = io.StringIO()
+    call_command("seed_remesh", "--if-empty", stdout=out)
+    assert Product.objects.count() == 1 and Variant.objects.filter(sku="S1").exists()
+    assert out.getvalue().strip().splitlines()[-1] == "Створено: категорій 1, товарів 1, варіантів 1"
+    assert "Каталог не порожній — пропущено" not in out.getvalue()
+
+
+def test_if_empty_does_nothing_when_a_product_exists(monkeypatch, make_product):
+    make_product(slug="manager-product")
+    counts = (Category.objects.count(), Product.objects.count(), Variant.objects.count())
+    for k, v in SMALL.items():
+        monkeypatch.setattr(seed_data, k, v)
+    out = io.StringIO()
+    call_command("seed_remesh", "--if-empty", stdout=out)
+    assert out.getvalue().strip() == "Каталог не порожній — пропущено"
+    assert (Category.objects.count(), Product.objects.count(), Variant.objects.count()) == counts
+    assert not Product.objects.filter(slug="p1").exists()
+
+
+def test_without_if_empty_existing_catalog_is_still_seeded(monkeypatch, make_product):
+    make_product(slug="manager-product")
+    out = run(monkeypatch)
+    assert Product.objects.filter(slug="p1").exists()
+    assert "Каталог не порожній" not in out
