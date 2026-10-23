@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
+from .forms import VariantForm, refresh_stock
 from .models import Category, Product, ProductImage, Variant
 from .templatetags.money import format_uah
 
@@ -9,6 +10,7 @@ admin.site.site_header = "REMESH — адмінка"
 
 class VariantInline(admin.TabularInline):
     model = Variant
+    form = VariantForm
     fields = ("name", "sku", "price", "stock", "is_active")
     extra = 1
 
@@ -50,7 +52,16 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(Variant)
 class VariantAdmin(admin.ModelAdmin):
+    form = VariantForm
     list_display = ("product", "name", "sku", "price", "stock", "is_active")
     list_editable = ("price", "stock", "is_active")
     list_select_related = ("product",)
     search_fields = ("sku", "name", "product__name")
+
+    def get_changelist_form(self, request, **kwargs):
+        kwargs.setdefault("form", VariantForm)
+        return super().get_changelist_form(request, **kwargs)
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        refresh_stock(obj)  # the list/change pages save with commit=False, so the form could not do it
