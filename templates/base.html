@@ -11,6 +11,15 @@
   <header class="site-header">
     <div class="container site-header__bar">
       <a class="site-header__logo" href="/"><img src="{% static 'img/logo.svg' %}" alt="REMESH" width="44" height="44"></a>
+      {% if nav_categories %}
+        <nav class="site-header__nav" aria-label="Категорії">
+          <ul>
+            {% for nav_item in nav_categories %}
+              <li><a href="{% url 'catalog:list' %}?category={{ nav_item.slug|urlencode }}"{% if request.GET.category == nav_item.slug %} aria-current="page"{% endif %}>{{ nav_item.name }}</a></li>
+            {% endfor %}
+          </ul>
+        </nav>
+      {% endif %}
       {% include "cart/_counter.html" %}
     </div>
   </header>

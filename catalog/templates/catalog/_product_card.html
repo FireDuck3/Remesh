@@ -1,0 +1,8 @@
+{% load static money %}
+<a class="product-card" href="{% url 'catalog:detail' product.slug %}">
+  <img class="product-card__image" src="{% if product.cover %}{{ product.cover.image.url }}{% else %}{% static 'img/placeholder.svg' %}{% endif %}" alt="" width="400" height="300" loading="lazy">
+  <span class="product-card__name">{{ product.name }}</span>
+  {% if product.price_min is not None %}
+    <span class="product-card__price">{% if product.price_min != product.price_max %}від {% endif %}{{ product.price_min|uah }}</span>
+  {% endif %}
+</a>

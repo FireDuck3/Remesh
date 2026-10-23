@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}{% if category %}{{ category.name }}{% else %}Каталог{% endif %} — REMESH{% endblock %}
+
+{% block content %}
+  <h1>{% if category %}{{ category.name }}{% else %}Каталог{% endif %}</h1>
+  {% if products %}
+    <ul class="product-grid">
+      {% for product in products %}
+        <li>{% include "catalog/_product_card.html" %}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="catalog-empty">Поки що немає товарів</p>
+  {% endif %}
+{% endblock %}

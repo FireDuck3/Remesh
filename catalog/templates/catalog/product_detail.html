@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load static money %}
+
+{% block title %}{{ product.name }} — REMESH{% endblock %}
+
+{% block content %}
+  <article class="product">
+    <h1 class="product__name">{{ product.name }}</h1>
+
+    <div class="product__gallery">
+      {% for image in images %}
+        <img src="{{ image.image.url }}" alt="{% if forloop.first %}{{ product.name }}{% endif %}" width="800" height="600"{% if not forloop.first %} loading="lazy"{% endif %}>
+      {% empty %}
+        <img src="{% static 'img/placeholder.svg' %}" alt="" width="400" height="300">
+      {% endfor %}
+    </div>
+
+    <div class="product__buy">
+      {% if product.description %}
+        <p class="product__description">{{ product.description|linebreaksbr }}</p>
+      {% endif %}
+
+      {# Works without JS (plain POST, 302 to the cart); htmx swaps the header counter instead. 4xx replies are not swapped by htmx, so the handler shows the server's message (409: out of stock) next to the button. #}
+      <form class="add-form" method="post" action="{% url 'cart:add' %}" hx-post="{% url 'cart:add' %}" hx-target="#cart-counter" hx-swap="outerHTML"
+            hx-on::after-request="const note = this.querySelector('.add-form__status'); note.textContent = event.detail.successful ? 'Додано в кошик' : event.detail.xhr.status === 409 ? event.detail.xhr.responseText : 'Не вдалося додати в кошик. Спробуйте ще раз.'">
+        {% csrf_token %}
+        <fieldset class="add-form__variants">
+          <legend>Варіант</legend>
+          {% for variant in variants %}
+            <label class="variant">
+              <input type="radio" name="variant_id" value="{{ variant.pk }}"{% if not variant.in_stock %} disabled{% elif variant.pk == default_variant_id %} checked{% endif %}>
+              <span class="variant__label">{{ variant.name }} — {{ variant.price|uah }}</span>
+              {% if not variant.in_stock %}<span class="variant__stock">немає в наявності</span>{% endif %}
+            </label>
+          {% endfor %}
+        </fieldset>
+        <label class="add-form__quantity">Кількість
+          <input type="number" name="quantity" value="1" min="1" inputmode="numeric">
+        </label>
+        <button type="submit" class="button"{% if default_variant_id is None %} disabled{% endif %}>Додати в кошик</button>
+        <p class="add-form__status" role="status">{% if default_variant_id is None %}Немає в наявності{% endif %}</p>
+      </form>
+    </div>
+  </article>
+{% endblock %}

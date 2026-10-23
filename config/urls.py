@@ -13,6 +13,7 @@ urlpatterns = [
     path("healthz/", healthz),
     path("admin/", admin.site.urls),
     path("cart/", include("cart.urls")),
+    path("", include("catalog.urls")),  # last: orders.urls goes before it
 ]
 
 if settings.DEBUG or settings.SERVE_MEDIA:

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Фото відсутнє">
+  <rect width="400" height="300" fill="#eee"/>
+  <g fill="none" stroke="#999" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M110 150c30-40 90-40 130 0-40 40-100 40-130 0z"/>
+    <path d="M240 150l45-30v60z"/>
+  </g>
+  <circle cx="150" cy="142" r="6" fill="#999"/>
+</svg>
