@@ -1,0 +1,33 @@
+{% load static %}<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}REMESH — рибальський магазин{% endblock %}</title>
+  <link rel="icon" href="{% static 'img/logo.svg' %}" type="image/svg+xml">
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+</head>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  <header class="site-header">
+    <div class="container site-header__bar">
+      <a class="site-header__logo" href="/"><img src="{% static 'img/logo.svg' %}" alt="REMESH" width="44" height="44"></a>
+      {% include "cart/_counter.html" %}
+    </div>
+  </header>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <address class="container site-footer__contacts">
+      <p>м. Вінниця, вул. Костянтина Василенка 9</p>
+      <p>Пн–Сб 9:00–20:00, Нд 9:00–17:00</p>
+      <p><a href="tel:+380985936815">+380 98 593 68 15</a></p>
+      <p><a href="https://www.instagram.com/remesh.fishing_team/" target="_blank" rel="noopener">Instagram</a></p>
+    </address>
+  </footer>
+
+  <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js"></script>
+</body>
+</html>

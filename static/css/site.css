@@ -1,0 +1,270 @@
+/* REMESH shop: mobile-first, black and white, no frameworks. Base styles are for ~375px; wider screens refine. */
+
+:root {
+  --ink: #111;
+  --paper: #fff;
+  --muted: #666;
+  --line: #ddd;
+  --radius: 6px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font: 1rem/1.5 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+main {
+  flex: 1;
+  padding-bottom: 2rem;
+}
+
+.container {
+  width: 100%;
+  max-width: 60rem;
+  margin: 0 auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+a {
+  color: inherit;
+}
+
+h1 {
+  font-size: 1.5rem;
+  line-height: 1.25;
+  margin: 1.25rem 0 1rem;
+}
+
+p {
+  margin: 0;
+}
+
+:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* Header */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+
+.site-header__bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: 4rem;
+}
+
+.site-header__logo {
+  display: block;
+  flex: none;
+  line-height: 0;
+}
+
+.site-header__logo img {
+  display: block;
+}
+
+#cart-counter {
+  margin-left: auto; /* pushes the counter right; anything added between logo and counter takes the middle */
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+#cart-counter:not([data-count="0"]) {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* Footer */
+
+.site-footer {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 1.5rem 0;
+}
+
+.site-footer__contacts {
+  font-style: normal;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.site-footer :focus-visible {
+  outline-color: var(--paper);
+}
+
+/* Buttons */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.5rem 1.25rem;
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: var(--paper);
+  font: inherit;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button:hover {
+  background: #333;
+  border-color: #333;
+}
+
+.button--small {
+  min-height: 2.25rem;
+  padding: 0.25rem 0.75rem;
+}
+
+.button--link {
+  min-height: 2.75rem;
+  padding: 0.5rem 0;
+  border-color: transparent;
+  background: none;
+  color: var(--ink);
+  font-weight: 400;
+  text-decoration: underline;
+}
+
+.button--link:hover {
+  background: none;
+  border-color: transparent;
+  color: var(--muted);
+}
+
+/* Cart */
+
+.cart-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cart-line {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "info total"
+    "qty remove";
+  gap: 0.5rem 1rem;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.cart-line__info {
+  grid-area: info;
+  min-width: 0;
+}
+
+.cart-line__name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.cart-line__variant,
+.cart-line__price {
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+.cart-line__total {
+  grid-area: total;
+  font-weight: 600;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.cart-line__qty {
+  grid-area: qty;
+}
+
+.cart-line__qty label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cart-line__qty input[type="number"] {
+  width: 5rem;
+  min-height: 2.75rem;
+  padding: 0.25rem 0.5rem;
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
+  font: inherit; /* 16px keeps iOS from zooming on focus */
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.cart-line__remove {
+  grid-area: remove;
+  justify-self: end;
+}
+
+.cart-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem 0;
+}
+
+.cart-summary__total {
+  font-size: 1.25rem;
+}
+
+.cart-empty {
+  margin: 0 0 1rem;
+}
+
+@media (min-width: 40rem) {
+  h1 {
+    font-size: 2rem;
+  }
+
+  .cart-summary {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .site-footer__contacts {
+    grid-template-columns: repeat(2, auto);
+    justify-content: space-between;
+  }
+}

@@ -1,0 +1,40 @@
+{% load money %}
+<div id="cart-body" hx-target="this" hx-swap="outerHTML">
+  {% if lines %}
+    <ul class="cart-lines">
+      {% for line in lines %}
+        <li class="cart-line">
+          <div class="cart-line__info">
+            <p class="cart-line__name">{{ line.variant.product.name }}</p>
+            <p class="cart-line__variant">{{ line.variant.name }}</p>
+            <p class="cart-line__price">{{ line.variant.price|uah }}</p>
+          </div>
+          <p class="cart-line__total">{{ line.line_total|uah }}</p>
+          {# With htmx the input's change event does the update, so Enter must not also submit the form natively. #}
+          <form class="cart-line__qty" method="post" action="{% url 'cart:update' %}" hx-on:submit="event.preventDefault()">
+            {% csrf_token %}
+            <input type="hidden" name="variant_id" value="{{ line.variant.pk }}">
+            <label>Кількість
+              <input type="number" name="quantity" value="{{ line.quantity }}" min="0" max="{{ line.variant.stock }}" inputmode="numeric"
+                     hx-post="{% url 'cart:update' %}" hx-trigger="change">
+            </label>
+            <noscript><button type="submit" class="button button--small">Оновити</button></noscript>
+          </form>
+          <form class="cart-line__remove" method="post" action="{% url 'cart:remove' %}">
+            {% csrf_token %}
+            <input type="hidden" name="variant_id" value="{{ line.variant.pk }}">
+            <button type="submit" class="button button--link" hx-post="{% url 'cart:remove' %}"
+                    aria-label="Видалити: {{ line.variant.product.name }}, {{ line.variant.name }}">Видалити</button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+    <div class="cart-summary">
+      <p class="cart-summary__total">Разом: <strong>{{ total|uah }}</strong></p>
+      <a class="button" href="/checkout/">Оформити замовлення</a>
+    </div>
+  {% else %}
+    <p class="cart-empty">Кошик порожній</p>
+    <a class="button" href="/">До каталогу</a>
+  {% endif %}
+</div>

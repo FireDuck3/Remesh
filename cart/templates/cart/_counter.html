@@ -1,0 +1,1 @@
+<a id="cart-counter" href="{% url 'cart:detail' %}" data-count="{{ cart_count }}"{% if oob %} hx-swap-oob="true"{% endif %}>Кошик · {{ cart_count }}</a>
