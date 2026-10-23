@@ -25,6 +25,11 @@
   </header>
 
   <main class="container">
+    {% if messages %}
+      <ul class="messages" role="status">
+        {% for message in messages %}<li class="messages__item">{{ message }}</li>{% endfor %}
+      </ul>
+    {% endif %}
     {% block content %}{% endblock %}
   </main>
 
@@ -38,5 +43,6 @@
   </footer>
 
   <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js"></script>
+  {% block scripts %}{% endblock %}
 </body>
 </html>

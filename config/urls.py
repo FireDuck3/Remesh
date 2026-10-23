@@ -14,7 +14,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("cart/", include("cart.urls")),
     path("delivery/", include("delivery.urls")),
-    path("", include("catalog.urls")),  # last: orders.urls goes before it
+    path("", include("orders.urls")),
+    path("", include("catalog.urls")),  # last: its "" route is the catalog home
 ]
 
 if settings.DEBUG or settings.SERVE_MEDIA:

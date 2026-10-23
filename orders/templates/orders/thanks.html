@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load money %}
+
+{% block title %}Дякуємо за замовлення — REMESH{% endblock %}
+
+{% block content %}
+  <section class="thanks">
+    <h1>Дякуємо за замовлення!</h1>
+    <p class="thanks__number">Номер замовлення: <strong>{{ order.number }}</strong></p>
+    <p class="thanks__call">Ми зателефонуємо для підтвердження замовлення.</p>
+
+    <ul class="checkout-lines">
+      {% for item in order.items.all %}
+        <li class="checkout-line">
+          <span class="checkout-line__name">{{ item.product_name }}, {{ item.variant_name }} × {{ item.quantity }}</span>
+          <span class="checkout-line__total">{{ item.line_total|uah }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+    <p class="checkout-summary__total">Разом: <strong>{{ order.total|uah }}</strong></p>
+
+    <dl class="thanks__details">
+      <dt>Доставка Новою поштою</dt>
+      <dd>{{ order.np_city_name }}, {{ order.np_warehouse_name }}</dd>
+      <dt>Оплата</dt>
+      <dd>{{ order.get_payment_method_display }} (при отриманні)</dd>
+    </dl>
+
+    <a class="button" href="/">До каталогу</a>
+  </section>
+{% endblock %}

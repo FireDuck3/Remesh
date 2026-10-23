@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load static money %}
+
+{% block title %}Оформлення замовлення — REMESH{% endblock %}
+
+{% block content %}
+  <h1>Оформлення замовлення</h1>
+
+  {% if problems %}
+    <div class="checkout-problems" role="alert">
+      <p>Деяких товарів не вистачає, тож ми оновили кошик.</p>
+      <ul>
+        {% for problem in problems %}
+          <li>{{ problem.name }}: {% if problem.available %}залишилось {{ problem.available }} шт.{% else %}немає в наявності{% endif %}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  {% if lines %}
+    <section class="checkout-summary" aria-label="Ваше замовлення">
+      <ul class="checkout-lines">
+        {% for line in lines %}
+          <li class="checkout-line">
+            <span class="checkout-line__name">{{ line.variant.product.name }}, {{ line.variant.name }} × {{ line.quantity }}</span>
+            <span class="checkout-line__total">{{ line.line_total|uah }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+      <p class="checkout-summary__total">Разом: <strong>{{ total|uah }}</strong></p>
+      <a href="{% url 'cart:detail' %}">Змінити кошик</a>
+    </section>
+
+    {# A plain POST: the script below only locks the button so a double tap can't send the order twice. #}
+    <form class="checkout-form" method="post" action="{% url 'orders:checkout' %}"
+          onsubmit="const button = this.querySelector('button[type=submit]'); button.disabled = true; button.textContent = 'Оформлюємо…'">
+      {% csrf_token %}
+      {% for field in form.hidden_fields %}
+        {{ field }}
+        {% for error in field.errors %}<p class="field__error">{{ error }}</p>{% endfor %}
+      {% endfor %}
+
+      <div class="field{% if form.customer_name.errors %} field--invalid{% endif %}">
+        <label for="{{ form.customer_name.id_for_label }}">{{ form.customer_name.label }}</label>
+        {{ form.customer_name }}
+        {% for error in form.customer_name.errors %}<p class="field__error">{{ error }}</p>{% endfor %}
+      </div>
+
+      <div class="field{% if form.phone.errors %} field--invalid{% endif %}">
+        <label for="{{ form.phone.id_for_label }}">{{ form.phone.label }}</label>
+        {{ form.phone }}
+        {% for error in form.phone.errors %}<p class="field__error">{{ error }}</p>{% endfor %}
+      </div>
+
+      {# With a Nova Poshta key the two inputs search while typing (hx-get; static/js/checkout.js maps the typed text to the q / city_ref parameters of /delivery/); without one they are plain text fields. #}
+      <div class="field{% if form.np_city_name.errors %} field--invalid{% endif %}">
+        <label for="id_np_city_name">{{ form.np_city_name.label }}</label>
+        <input type="text" name="np_city_name" id="id_np_city_name" maxlength="120" required
+               value="{{ form.np_city_name.value|default_if_none:'' }}"
+               {% if np_enabled %}autocomplete="off"
+               hx-get="{% url 'delivery:cities' %}" hx-trigger="input changed delay:300ms" hx-target="#np-city-results"{% else %}autocomplete="address-level2"{% endif %}>
+        {% for error in form.np_city_name.errors %}<p class="field__error">{{ error }}</p>{% endfor %}
+        {% if np_enabled %}<div id="np-city-results" class="np-results" aria-live="polite"></div>{% endif %}
+      </div>
+
+      <div class="field{% if form.np_warehouse_name.errors %} field--invalid{% endif %}">
+        <label for="id_np_warehouse_name">{{ form.np_warehouse_name.label }}</label>
+        <input type="text" name="np_warehouse_name" id="id_np_warehouse_name" maxlength="200" required autocomplete="off"
+               value="{{ form.np_warehouse_name.value|default_if_none:'' }}"
+               {% if np_enabled %}hx-get="{% url 'delivery:warehouses' %}" hx-trigger="input changed delay:300ms" hx-target="#np-warehouse-results" hx-include="#id_np_city_ref"{% endif %}>
+        {% for error in form.np_warehouse_name.errors %}<p class="field__error">{{ error }}</p>{% endfor %}
+        {% if np_enabled %}<div id="np-warehouse-results" class="np-results" aria-live="polite"></div>{% endif %}
+      </div>
+
+      <div class="field{% if form.comment.errors %} field--invalid{% endif %}">
+        <label for="{{ form.comment.id_for_label }}">{{ form.comment.label }}</label>
+        {{ form.comment }}
+        {% for error in form.comment.errors %}<p class="field__error">{{ error }}</p>{% endfor %}
+      </div>
+
+      <p class="checkout-payment">Оплата: <strong>Накладений платіж</strong> (при отриманні)</p>
+      <button type="submit" class="button">Оформити замовлення</button>
+    </form>
+  {% else %}
+    <p class="cart-empty">Кошик порожній</p>
+    <a class="button" href="/">До каталогу</a>
+  {% endif %}
+{% endblock %}
+
+{% block scripts %}
+  {% if np_enabled and lines %}<script src="{% static 'js/checkout.js' %}" defer></script>{% endif %}
+{% endblock %}
