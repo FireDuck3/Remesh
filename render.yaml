@@ -3,6 +3,8 @@ services:
     name: remesh-shop
     runtime: python
     plan: free
+    # Same AWS region as the Neon database (US East 2, Ohio).
+    region: ohio
     buildCommand: ./build.sh
     startCommand: gunicorn config.wsgi --log-file -
     healthCheckPath: /healthz/
