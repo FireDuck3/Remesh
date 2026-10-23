@@ -8,6 +8,7 @@ from django.db.models import F
 
 from cart.cart import Cart, CartLine
 from catalog.models import Variant
+from notify import telegram
 
 from .models import Order, OrderItem
 
@@ -104,6 +105,8 @@ def place_order(cart: Cart, data: dict[str, str]) -> Order:
         problems = _find_problems(lines, locked)
         if not problems:
             order = _create_order(lines, locked, data)
+            # Only once the order is really committed; looked up on the module so tests can replace it.
+            transaction.on_commit(lambda: telegram.notify_new_order(order))
 
     if problems:  # raised outside the atomic block, so nothing above was written
         for problem in problems:
