@@ -1,5 +1,6 @@
 import io
 import re
+import shutil
 from decimal import Decimal
 
 import pytest
@@ -168,3 +169,72 @@ def test_without_if_empty_existing_catalog_is_still_seeded(monkeypatch, make_pro
     out = run(monkeypatch)
     assert Product.objects.filter(slug="p1").exists()
     assert "Каталог не порожній" not in out
+
+
+# --- seed photos live in the repo and must survive every deploy (Render's disk is ephemeral) -------------
+
+
+@pytest.fixture
+def seed_photos(monkeypatch, tmp_path, settings):
+    """A one-product catalog with two repo photos (a.jpg, b.jpg) and an empty MEDIA_ROOT."""
+    settings.MEDIA_ROOT = tmp_path / "media"
+    images_dir = tmp_path / "seed_images"
+    images_dir.mkdir()
+    (images_dir / "a.jpg").write_bytes(b"repo-a")
+    (images_dir / "b.jpg").write_bytes(b"repo-b")
+    monkeypatch.setattr(seed_remesh, "SEED_IMAGES_DIR", images_dir)
+    monkeypatch.setattr(seed_data, "CATEGORIES", SMALL["CATEGORIES"])
+    monkeypatch.setattr(seed_data, "PRODUCTS", [{**SMALL["PRODUCTS"][0], "images": ["a.jpg", "b.jpg"]}])
+    return settings.MEDIA_ROOT / "products"
+
+
+def counts():
+    return (Category.objects.count(), Product.objects.count(), Variant.objects.count(), ProductImage.objects.count())
+
+
+def test_seed_photos_are_stored_under_their_exact_name(seed_photos):
+    call_command("seed_remesh", stdout=io.StringIO())
+    names = [i.image.name for i in ProductImage.objects.order_by("position")]
+    assert names == ["products/a.jpg", "products/b.jpg"]
+    assert (seed_photos / "a.jpg").read_bytes() == b"repo-a" and (seed_photos / "b.jpg").read_bytes() == b"repo-b"
+
+
+def test_existing_file_is_reused_not_suffixed_or_overwritten(seed_photos):
+    seed_photos.mkdir(parents=True)
+    (seed_photos / "a.jpg").write_bytes(b"already-there")
+    call_command("seed_remesh", stdout=io.StringIO())
+    assert [i.image.name for i in ProductImage.objects.order_by("position")] == ["products/a.jpg", "products/b.jpg"]
+    assert (seed_photos / "a.jpg").read_bytes() == b"already-there"
+    assert sorted(p.name for p in seed_photos.iterdir()) == ["a.jpg", "b.jpg"]
+
+
+def test_if_empty_restores_missing_seed_photos_on_a_later_deploy(seed_photos):
+    call_command("seed_remesh", "--if-empty", stdout=io.StringIO())  # first deploy
+    shutil.rmtree(seed_photos.parent)  # ...then the ephemeral disk is wiped
+    before = counts()
+    out = io.StringIO()
+    call_command("seed_remesh", "--if-empty", stdout=out)  # second deploy: catalog is not empty
+    assert (seed_photos / "a.jpg").read_bytes() == b"repo-a" and (seed_photos / "b.jpg").read_bytes() == b"repo-b"
+    assert counts() == before
+    assert [i.image.name for i in ProductImage.objects.order_by("position")] == ["products/a.jpg", "products/b.jpg"]
+    assert out.getvalue().strip().splitlines()[-1] == "Каталог не порожній — пропущено"
+
+
+def test_restore_covers_every_run_and_every_listed_photo(seed_photos):
+    call_command("seed_remesh", stdout=io.StringIO())
+    (seed_photos / "b.jpg").unlink()  # only one of the two is lost
+    (seed_photos / "a.jpg").write_bytes(b"edited-on-disk")
+    before = counts()
+    call_command("seed_remesh", stdout=io.StringIO())  # plain run, product already exists
+    assert (seed_photos / "b.jpg").read_bytes() == b"repo-b"
+    assert (seed_photos / "a.jpg").read_bytes() == b"edited-on-disk"  # an existing file is never overwritten
+    assert counts() == before
+
+
+def test_restore_ignores_photos_missing_from_the_repo_and_unlisted_files(seed_photos):
+    seed_data.PRODUCTS[0]["images"] = ["a.jpg", "gone.jpg"]
+    call_command("seed_remesh", stdout=io.StringIO())
+    shutil.rmtree(seed_photos.parent)
+    (seed_photos.parent.parent / "seed_images" / "stray.jpg").write_bytes(b"not-in-seed-data")
+    call_command("seed_remesh", "--if-empty", stdout=io.StringIO())
+    assert sorted(p.name for p in seed_photos.iterdir()) == ["a.jpg"]

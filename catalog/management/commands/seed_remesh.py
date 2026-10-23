@@ -23,6 +23,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if options["if_empty"] and Product.objects.exists():
+            self._restore_images()  # the disk may have been wiped by the deploy, the catalog was not
             self.stdout.write("Каталог не порожній — пропущено")
             return
 
@@ -58,6 +59,7 @@ class Command(BaseCommand):
                 for variant in data["variants"]:
                     created["variants"] += self._add_variant(product, variant)
 
+        self._restore_images()  # photos of products that already existed
         self.stdout.write(
             f"Створено: категорій {created['categories']}, "
             f"товарів {created['products']}, варіантів {created['variants']}"
@@ -66,14 +68,31 @@ class Command(BaseCommand):
     def _add_images(self, product, files):
         position = 0
         for file in files:
-            path = SEED_IMAGES_DIR / file
-            if not path.is_file():
+            if not (SEED_IMAGES_DIR / file).is_file():
                 self.stdout.write(f"Фото не знайдено: {file} — пропущено")
                 continue
-            with path.open("rb") as handle:
-                name = default_storage.save(f"products/{file}", File(handle))
-            ProductImage.objects.create(product=product, image=name, position=position)
+            self._ensure_image(file)
+            ProductImage.objects.create(product=product, image=f"products/{file}", position=position)
             position += 1
+
+    def _restore_images(self):
+        """Put back every seed photo that is missing from the media storage (never touches the database)."""
+        restored = 0
+        for data in seed_data.PRODUCTS:
+            for file in data.get("images", []):
+                if (SEED_IMAGES_DIR / file).is_file():
+                    restored += self._ensure_image(file)
+        if restored:
+            self.stdout.write(f"Відновлено фото: {restored}")
+
+    def _ensure_image(self, file):
+        """Copy a repo photo to `products/<file>` unless that file is already there. Returns 1 if copied."""
+        name = f"products/{file}"
+        if default_storage.exists(name):
+            return 0
+        with (SEED_IMAGES_DIR / file).open("rb") as handle:
+            default_storage.save(name, File(handle))
+        return 1
 
     def _add_variant(self, product, data):
         if Variant.objects.filter(sku=data["sku"]).exists():
