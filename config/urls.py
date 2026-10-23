@@ -1,16 +1,10 @@
 from django.conf import settings
 from django.contrib import admin
-from django.http import HttpResponse
 from django.urls import include, path, re_path
 from django.views.static import serve
 
 
-def healthz(request):
-    return HttpResponse("ok")
-
-
 urlpatterns = [
-    path("healthz/", healthz),
     path("admin/", admin.site.urls),
     path("cart/", include("cart.urls")),
     path("delivery/", include("delivery.urls")),
